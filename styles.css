@@ -1,0 +1,200 @@
+:root {
+  --bg: #071b2c;
+  --panel: rgba(7, 27, 44, 0.88);
+  --panel2: rgba(15, 43, 66, 0.92);
+  --text: #eef8ff;
+  --muted: rgba(238, 248, 255, 0.72);
+  --line: rgba(255,255,255,0.16);
+  --accent: #3bb8ff;
+  --accent2: #62e3b3;
+  --warn: #ffbf4d;
+  --danger: #ff6b6b;
+  --shadow: 0 10px 30px rgba(0,0,0,0.28);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); }
+button, input, select, textarea { font: inherit; }
+button { cursor: pointer; }
+canvas#map { position: fixed; inset: 0; width: 100vw; height: 100vh; touch-action: none; background: #0c2539; }
+
+.panel {
+  position: fixed;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 12px;
+  z-index: 10;
+}
+
+.dash { left: 14px; top: 14px; width: min(680px, calc(100vw - 28px)); }
+.dash.compact .metrics { display: none; }
+.dashSizeBtn { position: absolute; top: 8px; right: 8px; }
+.metrics { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 12px; align-items: stretch; padding-right: 32px; }
+.label { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+.big { font-size: 34px; font-weight: 800; line-height: 1; }
+.unit { font-size: .48em; opacity: .75; margin-left: 3px; }
+.secondary { color: var(--muted); font-size: 13px; }
+.statusRow { border-top: 1px solid var(--line); margin-top: 9px; padding-top: 8px; display: flex; gap: 8px; align-items: baseline; }
+.statusLabel { padding: 2px 8px; border-radius: 999px; font-size: 12px; }
+.statusLabel.neutral { background: rgba(255,255,255,.12); }
+.statusLabel.good { background: rgba(98,227,179,.20); color: #a7ffd8; }
+.statusLabel.warn { background: rgba(255,191,77,.20); color: #ffd893; }
+.statusLabel.bad { background: rgba(255,107,107,.20); color: #ffb7b7; }
+
+.gpsBadge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; border-radius: 999px; background: rgba(255,255,255,.10); margin-top: 3px; }
+.gpsDot { width: 8px; height: 8px; border-radius: 50%; background: #8899a8; }
+.gpsBadge.on .gpsDot { background: var(--accent2); box-shadow: 0 0 12px var(--accent2); }
+.gpsBadge.warn .gpsDot { background: var(--warn); box-shadow: 0 0 12px var(--warn); }
+.gpsBadge.off .gpsDot { background: #8899a8; }
+
+.controls { left: 14px; bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; max-width: calc(100vw - 28px); }
+button, .fileImport {
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.10);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 9px 12px;
+  min-height: 38px;
+}
+button:hover, .fileImport:hover { background: rgba(255,255,255,.16); }
+button.active, button.primary { background: linear-gradient(180deg, rgba(59,184,255,.35), rgba(59,184,255,.18)); border-color: rgba(89,202,255,.55); }
+button.danger { background: rgba(255,107,107,.18); border-color: rgba(255,107,107,.5); }
+button:disabled { opacity: .45; cursor: default; }
+.iconBtn { width: 38px; height: 38px; padding: 0; display: inline-grid; place-items: center; font-size: 22px; }
+.zoomGroup { display: inline-flex; gap: 5px; }
+
+.routePanel, .editorPanel {
+  right: 14px;
+  top: 14px;
+  width: min(430px, calc(100vw - 28px));
+  max-height: calc(100vh - 28px);
+  overflow: auto;
+}
+.editorPanel { width: min(470px, calc(100vw - 28px)); }
+.panelHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.panelHeader strong { display: block; font-size: 16px; }
+
+.routePoint { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px; background: rgba(255,255,255,.06); }
+.routePoint span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent2); color: #063025; font-weight: 800; }
+.routePoint.destination span { background: var(--danger); color: #300606; }
+.routePoint small { display: block; color: var(--muted); }
+.clickable { cursor: pointer; }
+.clickable:hover { background: rgba(255,255,255,.10); }
+
+.boatProfileBox, .editorBlock { border: 1px solid var(--line); border-radius: 14px; padding: 10px; margin: 10px 0; background: rgba(255,255,255,.06); }
+.boatProfileBox > strong { margin-left: 8px; }
+.boatProfileForm, .editorBlock > *:not(summary) { margin-top: 9px; }
+label { display: block; color: var(--muted); font-size: 13px; margin: 8px 0; }
+input, select, textarea {
+  width: 100%;
+  margin-top: 4px;
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 10px;
+  padding: 9px;
+  outline: none;
+}
+input:focus, select:focus, textarea:focus { border-color: rgba(59,184,255,.75); box-shadow: 0 0 0 3px rgba(59,184,255,.12); }
+textarea { resize: vertical; min-height: 72px; }
+.checkboxLine { display: flex; align-items: center; gap: 8px; }
+.checkboxLine input { width: auto; margin: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.routeActions, .editorButtons, .editorModeRow { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.editorModeRow button { flex: 1 1 auto; }
+.routeStatus { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.routeWarning { color: #ffd893; font-size: 12px; line-height: 1.35; }
+.routeNotices { border: 1px solid rgba(255,191,77,.35); background: rgba(255,191,77,.12); border-radius: 12px; padding: 9px; font-size: 13px; margin-top: 8px; }
+.routeNotices ul { margin: 6px 0 0 18px; padding: 0; }
+summary { cursor: pointer; font-weight: 700; }
+small { color: var(--muted); line-height: 1.35; }
+code { background: rgba(255,255,255,.12); padding: 1px 4px; border-radius: 5px; }
+.fileImport { display: inline-flex; align-items: center; gap: 8px; }
+.fileImport input { display: none; }
+
+.info { right: 14px; bottom: 14px; max-width: min(420px, calc(100vw - 28px)); }
+.info #infoText { margin-top: 8px; color: var(--muted); line-height: 1.45; font-size: 13px; }
+.safety { position: fixed; left: 50%; bottom: 15px; transform: translateX(-50%); z-index: 4; color: rgba(255,255,255,.72); font-size: 12px; text-shadow: 0 1px 3px #000; pointer-events: none; }
+
+@media (max-width: 820px) {
+  .dash { top: 8px; left: 8px; width: calc(100vw - 16px); }
+  .metrics { grid-template-columns: 1fr 1fr; }
+  .dataBox { grid-column: 1 / -1; }
+  .routePanel, .editorPanel { top: auto; bottom: 76px; left: 8px; right: 8px; width: auto; max-height: 58vh; }
+  .controls { left: 8px; right: 8px; bottom: 8px; justify-content: center; }
+  .info { right: 8px; bottom: 82px; }
+  .safety { display: none; }
+}
+
+@media (max-width: 520px) {
+  .metrics { grid-template-columns: 1fr; }
+  .big { font-size: 28px; }
+  .grid2 { grid-template-columns: 1fr; }
+  button, .fileImport { padding: 8px 10px; }
+}
+
+/* v14 clean planner/editor layout */
+.plannerIntro {
+  border: 1px solid rgba(59,184,255,.20);
+  background: rgba(59,184,255,.10);
+  color: var(--muted);
+  border-radius: 14px;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.goodIntro { border-color: rgba(98,227,179,.25); background: rgba(98,227,179,.09); }
+.stepCard {
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.055);
+  border-radius: 16px;
+  padding: 10px;
+  margin: 10px 0;
+}
+.stepTitle, .boatProfileBox > summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+.stepTitle span, .stepNumber {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(59,184,255,.22);
+  border: 1px solid rgba(59,184,255,.35);
+  color: #dff5ff;
+  font-weight: 800;
+  flex: 0 0 auto;
+}
+.boatProfileBox > summary { cursor: pointer; margin-bottom: 0; }
+.boatProfileBox[open] > summary { margin-bottom: 9px; }
+.boatProfileBox > summary em {
+  margin-left: auto;
+  font-style: normal;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+}
+.compactActions button { flex: 1 1 120px; }
+.mainRouteActions button { flex: 1 1 130px; }
+.srOnly {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.routePanel .routePoint { margin-bottom: 8px; }

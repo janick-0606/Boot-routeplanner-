@@ -1,0 +1,26 @@
+{
+  "name": "Boot Routeplanner Loosdrecht",
+  "short_name": "BootRoute",
+  "description": "Eigen vaarroutes, bruggen en sluizen tekenen en route plannen op bootmaten.",
+  "id": "./index.html",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#071b2c",
+  "theme_color": "#071b2c",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
