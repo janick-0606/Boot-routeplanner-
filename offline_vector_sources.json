@@ -1,0 +1,8 @@
+{
+  "version": "v18",
+  "active": "geojson",
+  "geojson": "data/offline_nederland_simple.geojson",
+  "pmtiles_ready": true,
+  "pmtiles_target": "data/offline/nederland.pmtiles",
+  "note": "V18 gebruikt nu nog de lichte GeoJSON-vectorkaart. Later kan nederland.pmtiles worden toegevoegd als echte compacte offline vectorkaart. Routes/bruggen blijven in GPS-coordinaten en hoeven niet opnieuw getekend te worden."
+}

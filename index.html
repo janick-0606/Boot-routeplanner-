@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#071b2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BootRoute" />
+  <title>Boot Routeplanner v18</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="map" aria-label="Interactieve vaarkaart"></canvas>
+
+  <section id="dash" class="panel dash" aria-label="Vaartdashboard">
+    <button id="dashSizeBtn" class="iconBtn dashSizeBtn" aria-label="Dashboard compact maken" title="Dashboard compact maken">−</button>
+    <div class="metrics">
+      <div class="speedBlock">
+        <div class="label">Huidige snelheid</div>
+        <div class="big"><span id="speed">--</span><span class="unit"> km/u</span></div>
+        <div class="secondary"><span id="speedKnots">--</span> knopen</div>
+      </div>
+      <div class="gpsBox">
+        <div class="label">GPS</div>
+        <div id="gpsBadge" class="gpsBadge off"><span class="gpsDot"></span><span id="gpsState">Geen GPS</span></div>
+        <div id="accuracy" class="secondary">Nauwkeurigheid: —</div>
+      </div>
+      <div class="dataBox">
+        <div class="label">Eigen vaarwegnet</div>
+        <div><strong id="networkSummary">0 routes · 0 bruggen</strong></div>
+        <div id="storageState" class="secondary">Hardcoded data</div>
+      </div>
+    </div>
+    <div class="statusRow">
+      <strong id="statusLabel" class="statusLabel neutral">Wachten</strong>
+      <span id="status">Geen snelheidslagen of standaard routes. Bouw je eigen netwerk in de editor.</span>
+    </div>
+  </section>
+
+  <nav class="panel controls" aria-label="Kaartbediening">
+    <button id="gpsBtn">Start GPS</button>
+    <button id="followBtn" class="active" aria-pressed="true">Volg locatie</button>
+    <button id="recenterBtn" disabled>Centreer</button>
+    <button id="routeBtn">Route plannen</button>
+    <button id="editorBtn" class="primary">Editor</button>
+    <div class="zoomGroup" aria-label="Zoomen">
+      <button id="zoomIn" class="iconBtn" aria-label="Inzoomen">+</button>
+      <button id="zoomOut" class="iconBtn" aria-label="Uitzoomen">−</button>
+    </div>
+    <button id="mapLayerBtn">Kaartlaag: Auto</button>
+    <button id="cacheMapBtn">Kaartgebied opslaan</button>
+  </nav>
+
+  <section id="routePanel" class="panel routePanel" hidden aria-label="Routeplanner">
+    <div class="panelHeader">
+      <div>
+        <span class="label">Routeplanner</span>
+        <strong>Van A naar B via jouw routes</strong>
+      </div>
+      <button id="routeCloseBtn" class="iconBtn" aria-label="Routeplanner sluiten">×</button>
+    </div>
+
+    <div class="plannerIntro">
+      De planner gebruikt alleen de vaarroutes en bruggen die jij in de editor hebt gemaakt. Er worden geen snelheidsgebieden, oude routelijnen of standaard bruggen geladen.
+    </div>
+
+    <div class="stepCard">
+      <div class="stepTitle"><span>1</span><strong>Kies start en bestemming</strong></div>
+      <div id="routeStartRow" class="routePoint clickable" role="button" tabindex="0"><span>A</span><div><small>Start</small><strong id="routeStartText">Nog niet gekozen</strong></div></div>
+      <div id="routeEndRow" class="routePoint destination clickable" role="button" tabindex="0"><span>B</span><div><small>Bestemming</small><strong id="routeEndText">Nog niet gekozen</strong></div></div>
+      <div class="routeActions compactActions">
+        <button id="routeGpsBtn" disabled>Start = GPS</button>
+        <button id="routePickStartBtn">Kies A op kaart</button>
+        <button id="routePickEndBtn">Kies B op kaart</button>
+      </div>
+    </div>
+
+    <details class="stepCard boatProfileBox">
+      <summary><span class="stepNumber">2</span><strong>Bootmaten</strong> <em id="boatProfileSummary">Niet ingesteld</em></summary>
+      <div id="boatProfileForm" class="boatProfileForm">
+        <div class="grid2">
+          <label>Hoogte boven water <input id="boatHeight" inputmode="decimal" placeholder="bijv. 1.40"> m</label>
+          <label>Breedte <input id="boatWidth" inputmode="decimal" placeholder="bijv. 2.00"> m</label>
+          <label>Diepgang <input id="boatDraft" inputmode="decimal" placeholder="bijv. 0.45"> m</label>
+          <label>Veiligheidsmarge <input id="boatMargin" inputmode="decimal" value="0.20"> m</label>
+        </div>
+        <label class="checkboxLine"><input id="boatBlockUnknown" type="checkbox"> Onbekende vaste brug blokkeren</label>
+        <button id="boatSaveBtn" type="button" class="primary">Bootmaten opslaan</button>
+        <small>Deze maten worden alleen gebruikt bij bruggen, sluizen en doorvaarten die jij in de editor toevoegt.</small>
+      </div>
+    </details>
+    <button id="boatProfileBtn" type="button" class="srOnly" aria-hidden="true" tabindex="-1">Boot formaat</button>
+
+    <div class="stepCard">
+      <div class="stepTitle"><span>3</span><strong>Bereken</strong></div>
+      <div class="routeActions mainRouteActions">
+        <button id="routeCalcBtn" class="primary" disabled>Bereken route</button>
+        <button id="routeClearBtn">Wis A/B en route</button>
+        <button id="routeOpenEditorBtn">Open editor</button>
+      </div>
+      <p id="routeStatus" class="routeStatus">Teken eerst minimaal één route in de editor. Daarna kun je A en B kiezen.</p>
+      <div id="routeNotices" class="routeNotices" hidden></div>
+    </div>
+
+    <p class="routeWarning">Prototype: controleer altijd de echte situatie, borden, waterkaart, stremmingen en bedieningstijden.</p>
+  </section>
+
+  <section id="editorPanel" class="panel editorPanel" hidden aria-label="Netwerk editor">
+    <div class="panelHeader">
+      <div>
+        <span class="label">Editor</span>
+        <strong>Zelf routes, bruggen en sluizen maken</strong>
+      </div>
+      <button id="editorCloseBtn" class="iconBtn" aria-label="Editor sluiten">×</button>
+    </div>
+
+    <div class="plannerIntro goodIntro">
+      Alles wat met bruggen/sluizen bewerken te maken heeft staat alleen hier. De routeplanner blijft daardoor schoon en overzichtelijk.
+    </div>
+
+    <div class="editorModeRow">
+      <button id="selectModeBtn" class="active">Selecteren</button>
+      <button id="drawRouteModeBtn">Route tekenen</button>
+      <button id="placeBridgeModeBtn">Brug/sluis plaatsen</button>
+    </div>
+
+    <details open class="editorBlock" id="routeEditorBlock">
+      <summary>1. Vaarroute tekenen/bewerken</summary>
+      <label>Routenaam <input id="routeNameInput" placeholder="bijv. Drecht naar Hilversums Kanaal"></label>
+      <div class="editorButtons">
+        <button id="startRouteDrawBtn" type="button" class="primary">Nieuwe route tekenen</button>
+        <button id="undoRoutePointBtn" type="button">Laatste punt terug</button>
+        <button id="saveRouteBtn" type="button">Route opslaan</button>
+        <button id="renameRouteBtn" type="button">Naam opslaan</button>
+        <button id="deleteRouteBtn" type="button" class="danger">Verwijder route</button>
+        <button id="cancelRouteDrawBtn" type="button">Annuleer</button>
+      </div>
+      <small id="routeDrawHint">Teken het midden van het vaarwater. Zet extra punten in bochten en precies onder bruggen/sluizen.</small>
+    </details>
+
+    <details open class="editorBlock" id="bridgeEditorBlock">
+      <summary>2. Brug, sluis of doorvaart toevoegen</summary>
+      <label>Bestaand object
+        <select id="bridgeSelect"></select>
+      </label>
+      <label>Naam <input id="bridgeName" placeholder="bijv. Heulbrug of Weersluis"></label>
+      <div class="grid2">
+        <label>Hoogte <input id="bridgeHeight" inputmode="decimal" placeholder="onbekend"> m</label>
+        <label>Breedte <input id="bridgeWidth" inputmode="decimal" placeholder="onbekend"> m</label>
+        <label>Diepte <input id="bridgeDepth" inputmode="decimal" placeholder="onbekend"> m</label>
+        <label>Lengte <input id="bridgeLength" inputmode="decimal" placeholder="optioneel"> m</label>
+      </div>
+      <div class="grid2">
+        <label>Type
+          <select id="bridgeType">
+            <option value="fixed_bridge">Vaste brug</option>
+            <option value="movable_bridge">Beweegbare brug</option>
+            <option value="lock">Sluis</option>
+            <option value="passage">Doorvaart/duiker</option>
+          </select>
+        </label>
+        <label>Koppel-radius <input id="bridgeRadius" inputmode="decimal" value="25"> m</label>
+      </div>
+      <label class="checkboxLine"><input id="bridgeOpenable" type="checkbox"> Kan open / schutten / bediening nodig</label>
+      <label class="checkboxLine"><input id="bridgeEnabled" type="checkbox" checked> Actief gebruiken in routeplanner</label>
+      <div class="grid2">
+        <label>Longitude <input id="bridgeLon" inputmode="decimal" placeholder="klik op kaart"></label>
+        <label>Latitude <input id="bridgeLat" inputmode="decimal" placeholder="klik op kaart"></label>
+      </div>
+      <label>Opmerking <textarea id="bridgeNotes" rows="3" placeholder="Bron, bediening, eigen controle, etc."></textarea></label>
+      <div class="editorButtons">
+        <button id="newBridgeBtn" type="button">Nieuw object</button>
+        <button id="pickBridgeLocationBtn" type="button" class="primary">Plaats op kaart</button>
+        <button id="saveBridgeBtn" type="button">Opslaan</button>
+        <button id="deleteBridgeBtn" type="button" class="danger">Verwijder</button>
+      </div>
+      <small>Plaats het object precies op de route waar je erdoor/eronder vaart. De koppel-radius bepaalt welk route-segment geblokkeerd of gecontroleerd wordt.</small>
+    </details>
+
+    <details open class="editorBlock">
+      <summary>3. Data hardcoded maken</summary>
+      <div class="editorButtons">
+        <button id="downloadGeojsonBtn" type="button" class="primary">Download custom_network.geojson</button>
+        <label class="fileImport">Importeer GeoJSON <input id="importGeojsonInput" type="file" accept=".geojson,application/geo+json,application/json"></label>
+        <button id="clearBrowserDataBtn" type="button">Reset browserdata</button>
+      </div>
+      <small>Voor hardcoded data: download <code>custom_network.geojson</code> en vervang <code>data/custom_network.geojson</code> in de projectmap.</small>
+    </details>
+
+    <p id="editorStatus" class="routeStatus">Begin met een route tekenen. Plaats daarna bruggen/sluizen op die route.</p>
+  </section>
+
+  <section class="panel info">
+    <button id="infoBtn" class="iconBtn" aria-label="Informatie" aria-expanded="false">i</button>
+    <div id="infoText" hidden>
+      <strong>Boot Routeplanner v18</strong><br>
+      Leeg netwerk: geen snelheidskleuren, geen gebiedslagen, geen standaard routes en geen standaard bruggen.<br>
+      Routeplanner = alleen A/B + bootmaten + berekenen.<br>
+      Editor = routes, bruggen en sluizen maken of aanpassen.<br>
+      Online gebruik je de detailkaart. Offline kan de app overschakelen naar een lichte vectorkaart. Jouw routes/bruggen blijven exact op dezelfde GPS-coördinaten liggen. Later kan hier een echte PMTiles/MBTiles Nederland-kaart achter.
+    </div>
+  </section>
+
+  <footer class="safety">Prototype, geen officiële navigatie. Controleer altijd lokale situatie en waterkaart.</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
